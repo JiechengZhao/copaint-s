@@ -1,0 +1,12 @@
+body {
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+a {
+  color: #00b7ff;
+}
+path,
+line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
