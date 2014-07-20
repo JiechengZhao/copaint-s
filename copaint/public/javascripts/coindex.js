@@ -12,30 +12,27 @@ $(document).ready(function() {
     var path = svg.append('path')
     .datum(data)
     .attr('d',line)
+
     
-
-    data = []
-    path = svg.append('path')
-    .datum(data)
-    .attr('d',line)
+    var canvas = svg.append('g')
 
 
+    var msvg = document.getElementById('mainsvg')
 
-
-
-    var msvg = document.getElementById("mainsvg")
-
-    msvg.addEventListener("touchstart", function(e){
+    msvg.addEventListener('touchstart', function(e){
         e.preventDefault();
-
         if (e.touches.length == 1){
+            data = []
+            path = canvas.append('path')
+            .datum(data)
+            .attr('d',line)
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
             data.push(x)
 
         }
     })
 
-    msvg.addEventListener("touchmove", function(e){
+    msvg.addEventListener('touchmove', function(e){
         if (e.touches.length == 1){
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
             data.push(x)
@@ -44,39 +41,64 @@ $(document).ready(function() {
         }
     })
 
-    msvg.addEventListener("touchend",function(e){
+    msvg.addEventListener('touchend',function(e){
         socket.emit('draw',data)
-        data = []
-        path = svg.append('path')
-          .datum(data)
-          .attr('d',line)
     })
 
 
-    svg.on("mousedown",function(){
+    svg.on('mousedown',function(){
+        data = []
+        path = canvas.append('path')
+        .datum(data)
+        .attr('d',line)
         data.push(d3.mouse(this))
-        svg.on("mousemove", function(){
+        svg.on('mousemove', function(){
             data.push(d3.mouse(this))
             path.datum(data)
             .attr('d',line)
         })
     })
 
-    svg.on("mouseup",function(){
+    svg.on('mouseup',function(){
         socket.emit('draw',data)
-        data = []
-        path = svg.append('path')
-        .datum(data)
-        .attr('d',line)
-
-        svg.on("mousemove",null)
+        svg.on('mousemove',null)
     })
 
 
-    socket.on("saw",function(message){
-        svg.append('path')
+    socket.on('saw',function(message){
+        canvas.append('path')
         .datum(message)
         .attr('d',line)
         .style('stroke','#202')
     })
+
+    socket.on('cleanRoom',cleanRoom)
+
+    socket.on('history',function(message){
+        for (var i = 0; i < message.length; i++){
+            canvas.append('path')
+            .datum(message[i])
+            .attr('d',line)
+        }
+    })
+
+    socket.on('enterRoom',function(message){
+        socket.emit('history')
+    })
+
+    socket.on('init',function(message){
+        socket.emit('enterRoom', location.pathname)
+    })
+
+
 })
+
+$('#clean').on('click',function(){
+    socket.emit('cleanRoom',null)
+    cleanRoom()
+})
+
+function cleanRoom(){
+    d3.selectAll('svg g path').remove()
+
+}
