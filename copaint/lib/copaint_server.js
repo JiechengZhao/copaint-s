@@ -1,18 +1,18 @@
 var socketio = require('socket.io')
 
 var roomMap = {}
-var roomHistory = {}
+var roomHistory = {'':[]}
 
 module.exports = function copaintIoServer( server){
     io = socketio.listen(server)
     
     io.sockets.on('connection', function (socket){
         var room = ''
-        socket.emit('init',null)
         console.log(socket.id,'connected')
         socket.on('draw',function(message){
             console.log(socket.id,message)
-            roomHistory[room].push(message)
+            var his = roomHistory[room] ||roomHistory['']
+            his.push(message)
             socket.broadcast.to(roomMap[socket.id]).emit('saw',message)
         })
 

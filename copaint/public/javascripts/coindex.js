@@ -86,7 +86,7 @@ $(document).ready(function() {
         socket.emit('history')
     })
 
-    socket.on('init',function(message){
+    socket.on('connect',function(message){
         socket.emit('enterRoom', location.pathname)
     })
 
