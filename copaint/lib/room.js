@@ -5,13 +5,13 @@ exports.roomMap = roomMap
 exports.roomHistory = roomHistory
 
 
-module.exports = function(socket){
-	socket.prototype.joinroom = joinRoom
-	socket.prototype.getRoom = getRoom
-	socket.prototype.leaveRoom = leaveRoom
-	socket.prototype.getHistory = getHistory
-	socket.prototype.pushHistory = pushHistory
-	socket.prototype.cleanHistory = cleanHistory
+exports = module.exports = function(socket){
+	socket.joinroom = joinRoom
+	socket.getRoom = getRoom
+	socket.leaveRoom = leaveRoom
+	socket.getHistory = getHistory
+	socket.pushHistory = pushHistory
+	socket.cleanHistory = cleanHistory
 	socket.room = ''
 
 	return socket
