@@ -1,6 +1,6 @@
-var socket = io.connect()
-
 $(document).ready(function() {
+    var socket = io.connect()
+
     var svg = d3.select('svg')
 
     var line = d3.svg.line()
@@ -86,19 +86,19 @@ $(document).ready(function() {
         socket.emit('history')
     })
 
-    socket.on('connect',function(message){
+    socket.on('connect',function(){
+        console.log('enterRoom', location.pathname)
         socket.emit('enterRoom', location.pathname)
     })
 
 
-})
+    $('#clean').on('click',function(){
+        socket.emit('cleanRoom',null)
+        cleanRoom()
+    })
 
-$('#clean').on('click',function(){
-    socket.emit('cleanRoom',null)
-    cleanRoom()
 })
 
 function cleanRoom(){
     d3.selectAll('svg g path').remove()
-
 }

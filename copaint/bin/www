@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 var debug = require('debug')('copaint');
 var app = require('../app');
-var ioServer = require('../lib/copaint_server')
+var ioServer = require('../lib/board_s')
 
 app.set('port', process.env.PORT || 3000);
 

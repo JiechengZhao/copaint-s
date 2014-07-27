@@ -1,12 +1,7 @@
-var roomMap = {}
 var roomHistory = {'':[]}
 
-exports.roomMap = roomMap
-exports.roomHistory = roomHistory
-
-
 exports = module.exports = function(socket){
-	socket.joinroom = joinRoom
+	socket.joinRoom = joinRoom
 	socket.getRoom = getRoom
 	socket.leaveRoom = leaveRoom
 	socket.getHistory = getHistory
@@ -17,18 +12,26 @@ exports = module.exports = function(socket){
 	return socket
 }
 
+exports.roomHistory = roomHistory
+exports.getRoomList = function getRoomList(){
+	return Object.keys(roomHistory).map(decodeURI)
+	.filter(function(i){
+		return i.length<=8 && i != ''
+	})
+}
 
 function joinRoom(room){
-	roomMap[this.id] = room
+	roomHistory[this.room] = roomHistory[this.getRoom()] || []
 	this.room = room
 }
 
 function getRoom(){
-	return roomMap[this.id]
+	return this.room
 }
 
-function leaveRoom(room){
-	delete roomMap[this.id]
+
+function leaveRoom(){
+	this.room = ''
 }
 
 function getHistory(){
@@ -44,3 +47,4 @@ function pushHistory(message){
 function cleanHistory(message){
 	roomHistory[this.room] = []
 }
+

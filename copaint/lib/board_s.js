@@ -1,36 +1,32 @@
 var socketio = require('socket.io')
-
-var roomMap = {}
-var roomHistory = {'':[]}
+var room = require('./room')
 
 module.exports = function copaintIoServer( server){
     io = socketio.listen(server)
     io.sockets.on('connection', function (socket){
-        var room = ''
+        socket = room(socket)
         console.log(socket.id,'connected')
+
         socket.on('draw',function(message){
             console.log(socket.id,message)
-            var his = roomHistory[room] ||roomHistory['']
-            his.push(message)
-            socket.broadcast.to(roomMap[socket.id]).emit('saw',message)
+            socket.pushHistory(message)
+            socket.broadcast.to(socket.room).emit('saw',message)
         })
 
         socket.on('enterRoom',function (message){
             console.log(socket.id,message)
-            roomMap[socket.id] = message
+            socket.joinRoom(message)
             socket.join(message)
-            room = message
-            roomHistory[message] =  roomHistory[message] || []
             socket.emit('enterRoom',null)
         })
 
         socket.on('cleanRoom',function(message){
-            roomHistory[room] = []
-            socket.broadcast.to(roomMap[socket.id]).emit('cleanRoom',message)
+            socket.cleanHistory()    
+            socket.broadcast.to(socket.room).emit('cleanRoom',message)
         })
 
         socket.on('history',function(message){
-            socket.emit('history',roomHistory[room])
+            socket.emit('history',socket.getHistory())
         })
 
         socket.on('log',function(message){
@@ -38,7 +34,7 @@ module.exports = function copaintIoServer( server){
         })
         
         socket.on('disconnect',function(){
-            delete roomMap[socket.id]
+            socket.leaveRoom()
             console.log(socket.id,'disconnected')
         })
     })

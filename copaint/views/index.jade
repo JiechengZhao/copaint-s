@@ -1,7 +1,20 @@
 extends layout
 
 block content
-  svg#mainsvg(width='900' height='500')
-  .sidebar
-    #clean 清除
-  script(type='text/javascript'  src='/javascripts/coindex.js')
+  p= title
+  ul
+    each key in list
+      a(href=key)
+        li= key
+  input#input(type="text" value='put something here ')
+  a#newroom(href='') 进房间
+  script(type='text/javascript'). 
+    $(document).ready(function() {
+      $('#newroom').on('click',function(key){
+        $('#newroom').attr('href',$('#input').attr('value'))
+      })
+
+      setInterval(function(){
+        $('#newroom').attr('href',$('#input').attr('value'))
+      },125)
+    })
