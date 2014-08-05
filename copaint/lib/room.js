@@ -1,4 +1,5 @@
 var roomHistory = {'':[]}
+var roomCount = {'':0}
 
 exports = module.exports = function(socket){
 	socket.joinRoom = joinRoom
@@ -21,8 +22,10 @@ exports.getRoomList = function getRoomList(){
 }
 
 function joinRoom(room){
-	roomHistory[this.room] = roomHistory[this.getRoom()] || []
 	this.room = room
+	roomHistory[this.room] = roomHistory[this.getRoom()] || []
+	roomCount[this.room] = roomCount[this.room] || 0
+	++roomCount[this.room]
 }
 
 function getRoom(){
@@ -31,6 +34,17 @@ function getRoom(){
 
 
 function leaveRoom(){
+	roomCount[this.room] = roomCount[this.room] 
+	--roomCount[this.room]
+	var thisroom = this.room
+	if (roomCount[this.room] == 0){
+		setTimeout(function(){
+			if (roomCount[thisroom] == 0){
+				delete roomCount[thisroom]
+				delete roomHistory[thisroom]
+			}
+		},30000)
+	}
 	this.room = ''
 }
 
