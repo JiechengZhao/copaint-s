@@ -72,15 +72,15 @@ $(document).ready(function() {
     .attr('d',line)
 
     
-    var canvas = svg.select('g')
+    var canvas = svg.select('g#g_layer')
         .attr("transform",xyswaper.transform)
 
 
     var msvg = document.getElementById('mainsvg')
 
     msvg.addEventListener('touchstart', function(e){
-        e.preventDefault();
         if (e.touches.length == 1){
+            e.preventDefault();
             data = []
             path = canvas.append('path')
             .datum(data)
@@ -89,6 +89,8 @@ $(document).ready(function() {
             x = xyswaper(x)
             data.push(x)
 
+        }else{
+            data = []
         }
     })
 
@@ -103,7 +105,9 @@ $(document).ready(function() {
     })
 
     msvg.addEventListener('touchend',function(e){
-        socket.emit('draw',data)
+        if (e.touches.length == 1){
+            if (data.length) socket.emit('draw',data)
+        }
     })
 
 
@@ -161,5 +165,5 @@ $(document).ready(function() {
 })
 
 function cleanRoom(){
-    d3.selectAll('svg g path').remove()
+    d3.selectAll('svg g#g_layer path').remove()
 }
