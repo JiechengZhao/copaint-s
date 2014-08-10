@@ -1,20 +1,44 @@
 $(document).ready(function() {
+
+
+
     var socket = io.connect()
 
+    var xyswaper = (function _xyswaper(){
+        r = function(x){
+            return r.f(x)
+        }
+        if ($(window).width() > $(window).height()){
+            r.width = 900
+            r.height = 600
+            r.f = function (x) {return x}
+            r.r = r.f
+        }else{
+            r.width = 600
+            r.height = 900
+            r.f = function(x) {return [x[1],r.width-x[0]]}
+            r.r = function(y) {return [r.width-y[1],y[0]]}
+        }
+        r.edgepath = [[1,1],[r.width-1,1],[r.width-1,r.height-1],[1,r.height-1],[1,1]]
+        return r;
+
+
+    })()
+
     var svg = d3.select('svg')
+        .attr('width',xyswaper.width)
+        .attr('height',xyswaper.height)
 
     var line = d3.svg.line()
     .x(function(d) {return d[0] })
     .y(function(d) {return d[1] })
     
-    var data = [[1,1],[899,1],[899,499],[1,499],[1,1]]
-    
     var path = svg.append('path')
-    .datum(data)
+    .datum(r.edgepath)
     .attr('d',line)
 
     
-    var canvas = svg.append('g')
+    var canvas = svg.select('g')
 
 
     var msvg = document.getElementById('mainsvg')
@@ -27,6 +51,7 @@ $(document).ready(function() {
             .datum(data)
             .attr('d',line)
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
+            x = xyswaper(x)
             data.push(x)
 
         }
@@ -35,8 +60,9 @@ $(document).ready(function() {
     msvg.addEventListener('touchmove', function(e){
         if (e.touches.length == 1){
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
+            x = xyswaper(x)
             data.push(x)
-            path.datum(data)
+            path.datum(data.map(xyswaper.r))
             .attr('d',line)
         }
     })
@@ -49,13 +75,13 @@ $(document).ready(function() {
     svg.on('mousedown',function(){
         data = []
         path = canvas.append('path')
-        .datum(data)
-        .attr('d',line)
-        data.push(d3.mouse(this))
-        svg.on('mousemove', function(){
-            data.push(d3.mouse(this))
-            path.datum(data)
+            .datum(data)
             .attr('d',line)
+        data.push(xyswaper(d3.mouse(this)))
+        svg.on('mousemove', function(){
+            data.push(xyswaper(d3.mouse(this)))
+            path.datum(data.map(xyswaper.r))
+                .attr('d',line)
         })
     })
 
@@ -67,7 +93,7 @@ $(document).ready(function() {
 
     socket.on('saw',function(message){
         canvas.append('path')
-        .datum(message)
+        .datum(message.map(xyswaper.r))
         .attr('d',line)
         .style('stroke','#202')
     })
@@ -77,7 +103,7 @@ $(document).ready(function() {
     socket.on('history',function(message){
         for (var i = 0; i < message.length; i++){
             canvas.append('path')
-            .datum(message[i])
+            .datum(message[i].map(xyswaper.r))
             .attr('d',line)
         }
     })
