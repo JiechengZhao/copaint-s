@@ -5,22 +5,56 @@ $(document).ready(function() {
     var socket = io.connect()
 
     var xyswaper = (function _xyswaper(){
-        r = function(x){
+
+        var scaler = function(long,short){
+            var sr = {long: 9000,short: 6000}
+            var sl = sr.long/long
+            var ss = sr.short/short
+
+            var scaler
+            if (sl < ss){
+                scaler = ss
+                long = Math.ceil(short * sr.long / sr.short)
+            }else{
+                scaler = sl
+                short = Math.ceil(long * sr.short / sr.long)
+            }
+
+            return {
+                long:long,
+                short:short,
+                scaler:scaler,
+                rscaler:1 / scaler}
+
+        }
+
+
+        var r = function(x){
             return r.f(x)
         }
-        if ($(window).width() > $(window).height()){
-            r.width = 900
-            r.height = 600
-            r.f = function (x) {return x}
-            r.r = r.f
+
+        var width = $(window).width(),
+            height = $(window).height()
+
+        if (width > height){
+            var sclr = scaler(width-15,height-50)
+
+            r.width = sclr.long
+            r.height = sclr.short
+            r.f = function(x) {return [x[0]*sclr.scaler,x[1]*sclr.scaler].map(Math.round)}
+            r.r = function(y) {return y}
+            r.transform = "scale("+sclr.rscaler+")"
         }else{
-            r.width = 600
-            r.height = 900
-            r.f = function(x) {return [x[1],r.width-x[0]]}
-            r.r = function(y) {return [r.width-y[1],y[0]]}
+            var sclr = scaler(height-50,width-15)
+
+            r.height = sclr.long
+            r.width = sclr.short
+            r.f = function(x) {return [x[1]*sclr.scaler,(r.width - x[0])*sclr.scaler].map(Math.round)}
+            r.r = function(y) {return y}
+            r.transform =  "matrix(0,"+sclr.rscaler+","+(-sclr.rscaler)+",0,"+(r.width)+",0)"
         }
         r.edgepath = [[1,1],[r.width-1,1],[r.width-1,r.height-1],[1,r.height-1],[1,1]]
-        return r;
+        return r
 
 
     })()
@@ -34,11 +68,12 @@ $(document).ready(function() {
     .y(function(d) {return d[1] })
     
     var path = svg.append('path')
-    .datum(r.edgepath)
+    .datum(xyswaper.edgepath)
     .attr('d',line)
 
     
     var canvas = svg.select('g')
+        .attr("transform",xyswaper.transform)
 
 
     var msvg = document.getElementById('mainsvg')
