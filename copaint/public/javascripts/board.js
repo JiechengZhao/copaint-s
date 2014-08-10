@@ -91,6 +91,8 @@ $(document).ready(function() {
 
         }else{
             data = []
+            path.datum(data.map(xyswaper.r))
+            .attr('d',line)
         }
     })
 
@@ -105,9 +107,7 @@ $(document).ready(function() {
     })
 
     msvg.addEventListener('touchend',function(e){
-        if (e.touches.length == 1){
-            if (data.length) socket.emit('draw',data)
-        }
+        if (data.length) socket.emit('draw',data)
     })
 
 
