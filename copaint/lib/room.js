@@ -18,6 +18,8 @@ exports.getRoomList = function getRoomList(){
 	return Object.keys(roomHistory).map(decodeURI)
 	.filter(function(i){
 		return i.length<=8 && i != ''
+	}).map(function(x){
+		return x.slice(1)
 	})
 }
 
@@ -43,7 +45,7 @@ function leaveRoom(){
 				delete roomCount[thisroom]
 				delete roomHistory[thisroom]
 			}
-		},30000)
+		},60000*60*12)
 	}
 	this.room = ''
 }

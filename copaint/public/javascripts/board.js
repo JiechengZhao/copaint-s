@@ -71,10 +71,27 @@ $(document).ready(function() {
     .datum(xyswaper.edgepath)
     .attr('d',line)
 
-    
+
     var canvas = svg.select('g#g_layer')
         .attr("transform",xyswaper.transform)
 
+    var colors = (function _colorpickerInit(){
+        var colorpicker = svg.select('g#colorpicker')
+            .attr("transform",xyswaper.transform)
+
+        var colors = Object.keys(colorlist)
+        for (var i = 0 ; i< 16; i ++){
+            colorpicker.append('rect')
+              .attr("x", (i&3)*2250+250)
+              .attr("width",1750)
+              .attr("y", (i>>2)*1500+250)
+              .attr("height", 1000)
+              .attr("rx",100)
+              .attr("ry",100)
+              .attr("fill",colorlist[colors[i]])
+        }
+        return colors
+    })();
 
     var msvg = document.getElementById('mainsvg')
 
