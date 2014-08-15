@@ -42,7 +42,6 @@ $(document).ready(function() {
             r.width = sclr.long
             r.height = sclr.short
             r.f = function(x) {return [x[0]*sclr.scaler,x[1]*sclr.scaler].map(Math.round)}
-            r.r = function(y) {return y}
             r.transform = "scale("+sclr.rscaler+")"
         }else{
             var sclr = scaler(height-50,width-15)
@@ -50,7 +49,6 @@ $(document).ready(function() {
             r.height = sclr.long
             r.width = sclr.short
             r.f = function(x) {return [x[1]*sclr.scaler,(r.width - x[0])*sclr.scaler].map(Math.round)}
-            r.r = function(y) {return y}
             r.transform =  "matrix(0,"+sclr.rscaler+","+(-sclr.rscaler)+",0,"+(r.width)+",0)"
         }
         r.edgepath = [[1,1],[r.width-1,1],[r.width-1,r.height-1],[1,r.height-1],[1,1]]
@@ -80,16 +78,32 @@ $(document).ready(function() {
             .attr("transform",xyswaper.transform)
 
         var colors = Object.keys(colorlist)
+
         for (var i = 0 ; i< 16; i ++){
-            colorpicker.append('rect')
+            var colorRect = colorpicker.append('rect')
               .attr("x", (i&3)*2250+250)
               .attr("width",1750)
               .attr("y", (i>>2)*1500+250)
               .attr("height", 1000)
               .attr("rx",100)
               .attr("ry",100)
-              .attr("fill",colorlist[colors[i]])
+              .attr("fill",colorlist[colors[i]]);
+
+            (function(thecolor){
+                colorRect[0][0].addEventListener('touchstart', function(e){
+                    if (e.touches.length == 1){
+                        current_color = thecolor
+                        colorpicker.attr("display","none")
+                    }
+                })
+
+                colorRect[0][0].addEventListener('mousedown', function(e){
+                    current_color = thecolor
+                    colorpicker.attr("display","none")
+                })
+            })(colorlist[colors[i]]);
         }
+        colors.colorpicker = colorpicker;
         return colors
     })();
 
@@ -102,13 +116,14 @@ $(document).ready(function() {
             path = canvas.append('path')
             .datum(data)
             .attr('d',line)
+            .style('stroke',current_color)
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
             x = xyswaper(x)
             data.push(x)
 
         }else{
             data = []
-            path.datum(data.map(xyswaper.r))
+            path.datum(data)
             .attr('d',line)
         }
     })
@@ -118,13 +133,13 @@ $(document).ready(function() {
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
             x = xyswaper(x)
             data.push(x)
-            path.datum(data.map(xyswaper.r))
+            path.datum(data)
             .attr('d',line)
         }
     })
 
     msvg.addEventListener('touchend',function(e){
-        if (data.length) socket.emit('draw',data)
+        if (data.length) socket.emit('draw',{path:data,stroke:current_color})
     })
 
 
@@ -133,25 +148,27 @@ $(document).ready(function() {
         path = canvas.append('path')
             .datum(data)
             .attr('d',line)
+            .style('stroke',current_color)
         data.push(xyswaper(d3.mouse(this)))
         svg.on('mousemove', function(){
             data.push(xyswaper(d3.mouse(this)))
-            path.datum(data.map(xyswaper.r))
+            path.datum(data)
                 .attr('d',line)
+                .attr('stroke',current_color)
         })
     })
 
     svg.on('mouseup',function(){
-        socket.emit('draw',data)
+        socket.emit('draw', {path:data,stroke:current_color} )
         svg.on('mousemove',null)
     })
 
 
     socket.on('saw',function(message){
         canvas.append('path')
-        .datum(message.map(xyswaper.r))
+        .datum(message.path)
         .attr('d',line)
-        .style('stroke','#202')
+        .style('stroke',message.stroke)
     })
 
     socket.on('cleanRoom',cleanRoom)
@@ -159,8 +176,9 @@ $(document).ready(function() {
     socket.on('history',function(message){
         for (var i = 0; i < message.length; i++){
             canvas.append('path')
-            .datum(message[i].map(xyswaper.r))
+            .datum(message[i].path)
             .attr('d',line)
+            .style('stroke',message[i].stroke)
         }
     })
 
@@ -179,6 +197,9 @@ $(document).ready(function() {
         cleanRoom()
     })
 
+    $('#color').on('click',function(){
+        colors.colorpicker.attr("display",null)
+    })
 })
 
 function cleanRoom(){

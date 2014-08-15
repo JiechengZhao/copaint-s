@@ -16,3 +16,6 @@ line {
 .sidebar {
   height: 500px;
 }
+div.tool div {
+  display: inline-block;
+}
