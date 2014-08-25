@@ -1,5 +1,6 @@
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+  margin: 0px;
 }
 a {
   color: #00b7ff;
@@ -18,4 +19,5 @@ line {
 }
 div.tool div {
   display: inline-block;
+  margin-right: 5px;
 }

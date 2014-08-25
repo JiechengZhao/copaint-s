@@ -1,4 +1,8 @@
 colorlist = {
+	black:'#111111',
+	gray:'#aaaaaa',
+	silver:'#dddddd',
+	purple:'#b10dc9',
 	navy:'#001f3f',
 	blue:'#0074d9',
 	aqua:'#7fdbff',
@@ -11,8 +15,6 @@ colorlist = {
 	red:'#ff4136',
 	maroon:'#85144b',
 	fuchsia:'#f012be',
-	purple:'#b10dc9',
-	black:'#111111',
-	gray:'#aaaaaa',
-	silver:'#dddddd'
+
+
 }

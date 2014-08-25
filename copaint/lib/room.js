@@ -1,5 +1,4 @@
-var roomHistory = {'':[]}
-var roomCount = {'':0}
+var rooms = {'':{his:[],cnt:0,nm:'',seq:0} }
 
 exports = module.exports = function(socket){
 	socket.joinRoom = joinRoom
@@ -8,14 +7,12 @@ exports = module.exports = function(socket){
 	socket.getHistory = getHistory
 	socket.pushHistory = pushHistory
 	socket.cleanHistory = cleanHistory
-	socket.room = ''
-
+	socket.getSeq = getSeq
 	return socket
 }
 
-exports.roomHistory = roomHistory
 exports.getRoomList = function getRoomList(){
-	return Object.keys(roomHistory).map(decodeURI)
+	return Object.keys(rooms).map(decodeURI)
 	.filter(function(i){
 		return i.length<=8 && i != ''
 	}).map(function(x){
@@ -24,43 +21,43 @@ exports.getRoomList = function getRoomList(){
 }
 
 function joinRoom(room){
-	this.room = room
-	roomHistory[this.room] = roomHistory[this.getRoom()] || []
-	roomCount[this.room] = roomCount[this.room] || 0
-	++roomCount[this.room]
+	this.room = rooms[room] = rooms[room] || {his:[],cnt:0,nm:room,seq:0}
+	++this.room.cnt
+	++this.room.seq
+	this.roomseq = this.room.seq
 }
 
 function getRoom(){
-	return this.room
+	return this.room.nm
 }
 
 
 function leaveRoom(){
-	roomCount[this.room] = roomCount[this.room] 
-	--roomCount[this.room]
-	var thisroom = this.room
-	if (roomCount[this.room] == 0){
+	if (this.room === null) return
+	--this.room.cnt
+	var roomname  = this.room.nm
+	if (this.room.cnt == 0){
 		setTimeout(function(){
-			if (roomCount[thisroom] == 0){
-				delete roomCount[thisroom]
-				delete roomHistory[thisroom]
+			if ( rooms[roomname].cnt == 0){
+				delete rooms[roomname]
 			}
 		},60000*60*12)
 	}
-	this.room = ''
+	this.room = null
 }
 
 function getHistory(){
-	roomHistory[this.room] = roomHistory[this.getRoom()] || []
-	return  roomHistory[this.getRoom()]
+	return  this.room.his
+}
+
+function getSeq(){
+	return this.roomseq
 }
 
 function pushHistory(message){
-	roomHistory[this.room] = roomHistory[this.getRoom()] || []
-	roomHistory[this.room].push(message)
+	this.room.his.push(message)
 }
 
 function cleanHistory(message){
-	roomHistory[this.room] = []
+	this.room.his = []
 }
-

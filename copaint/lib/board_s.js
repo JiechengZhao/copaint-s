@@ -10,7 +10,7 @@ module.exports = function copaintIoServer( server){
         socket.on('draw',function(message){
             console.log(socket.id,message)
             socket.pushHistory(message)
-            socket.broadcast.to(socket.room).emit('saw',message)
+            socket.broadcast.to(socket.getRoom()).emit('saw',message)
         })
 
         socket.on('enterRoom',function (message){
@@ -26,7 +26,8 @@ module.exports = function copaintIoServer( server){
         })
 
         socket.on('history',function(message){
-            socket.emit('history',socket.getHistory())
+            console.log('history'+socket.getSeq())
+            socket.emit('history',{h:socket.getHistory(),i:socket.getSeq()})
         })
 
         socket.on('log',function(message){

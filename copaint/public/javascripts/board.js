@@ -1,9 +1,7 @@
 $(document).ready(function() {
 
-
-
     var socket = io.connect()
-
+    var seq = 0
     var xyswaper = (function _xyswaper(){
 
         var scaler = function(long,short){
@@ -24,8 +22,8 @@ $(document).ready(function() {
                 long:long,
                 short:short,
                 scaler:scaler,
-                rscaler:1 / scaler}
-
+                rscaler:1 / scaler
+            }
         }
 
 
@@ -37,7 +35,7 @@ $(document).ready(function() {
             height = $(window).height()
 
         if (width > height){
-            var sclr = scaler(width-15,height-50)
+            var sclr = scaler(width,height)
 
             r.width = sclr.long
             r.height = sclr.short
@@ -104,6 +102,8 @@ $(document).ready(function() {
             })(colorlist[colors[i]]);
         }
         colors.colorpicker = colorpicker;
+        current_color = "black  "
+        colorpicker.attr("display","none")
         return colors
     })();
 
@@ -116,6 +116,7 @@ $(document).ready(function() {
             path = canvas.append('path')
             .datum(data)
             .attr('d',line)
+            .attr('id','l'+socket.roomid+'.'+seq)
             .style('stroke',current_color)
             var x = [ e.touches[0].pageX ,e.touches[0].pageY ]
             x = xyswaper(x)
@@ -139,7 +140,7 @@ $(document).ready(function() {
     })
 
     msvg.addEventListener('touchend',function(e){
-        if (data.length) socket.emit('draw',{path:data,stroke:current_color})
+        if (data.length) socket.emit('draw',{path:data,stroke:current_color,i:socket.roomid,d:seq++})
     })
 
 
@@ -148,6 +149,7 @@ $(document).ready(function() {
         path = canvas.append('path')
             .datum(data)
             .attr('d',line)
+            .attr('id','l'+socket.roomid+'.'+seq)
             .style('stroke',current_color)
         data.push(xyswaper(d3.mouse(this)))
         svg.on('mousemove', function(){
@@ -159,7 +161,7 @@ $(document).ready(function() {
     })
 
     svg.on('mouseup',function(){
-        socket.emit('draw', {path:data,stroke:current_color} )
+        socket.emit('draw', {path:data,stroke:current_color,i:socket.roomid,d:seq++} )
         svg.on('mousemove',null)
     })
 
@@ -168,18 +170,23 @@ $(document).ready(function() {
         canvas.append('path')
         .datum(message.path)
         .attr('d',line)
+        .attr('id','l'+message.i+'.'+message.d)
         .style('stroke',message.stroke)
     })
 
     socket.on('cleanRoom',cleanRoom)
 
     socket.on('history',function(message){
-        for (var i = 0; i < message.length; i++){
+        socket.roomid = message.i
+        var his = message.h
+        for (var i = 0; i < his.length; i++){
             canvas.append('path')
-            .datum(message[i].path)
+            .datum(his[i].path)
             .attr('d',line)
-            .style('stroke',message[i].stroke)
+            .attr('id','l'+his[i].i+'.'+his[i].d)
+            .style('stroke',his[i].stroke)
         }
+
     })
 
     socket.on('enterRoom',function(message){
@@ -198,7 +205,12 @@ $(document).ready(function() {
     })
 
     $('#color').on('click',function(){
-        colors.colorpicker.attr("display",null)
+        if (colors.colorpicker.attr("display")){
+            colors.colorpicker.attr("display",null)
+        }
+        else {
+            colors.colorpicker.attr("display","none")
+        }
     })
 })
 
